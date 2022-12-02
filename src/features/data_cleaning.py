@@ -1,7 +1,6 @@
 import pandas as pd
 import numpy as np
 
-
 def change_to_date(df, cols):
     """
     Converts values in columns to datetime objects.
@@ -152,10 +151,105 @@ def get_prorated_rate(df, delivered_only=False):
 
     return pooled
 
+def get_business_hours(df, order="ORDER_DATETIME_PST", pickup="PICKUP_DEADLINE_PST"):
+    """
+    Count number of hours from ORDER_DATETIME_PST to PICKUP_DEADLINE_PST that 
+    are in the business hours. Create a new column called BUSINESS_HOURS_ORDER_PICKUP.
+
+    Args:
+        df (DataFrame): dataframe to add BUSINESS_HOURS_ORDER_PICKUP
+        order (Series): order date and time
+        pickup (Series): pickup date and time
+        
+    It takes about 2 minutes to run.
+    """
+    import datetime
+    # packages to generate the rule of business hours and calculate the hours
+    import pytz
+    import businesstimedelta
+    import holidays as pyholidays
+    
+    # Set the working hours and days
+    work_hours = businesstimedelta.WorkDayRule(start_time=datetime.time(8),
+                                               end_time=datetime.time(18),
+                                               working_days=[0, 1, 2, 3, 4])
+
+    # Get possible holidays
+    all_holidays = pyholidays.UnitedStates()
+    holidays = businesstimedelta.HolidayRule(all_holidays)
+
+    # Create the duration of business hours
+    business_hours = businesstimedelta.Rules([work_hours, holidays])
+    
+    def business_hrs(start, end):
+        diff_hours = business_hours.difference(start, end)
+        return diff_hours.hours + float(diff_hours.seconds) / float(3600)
+    
+    # Add a new column called BUSINESS_HOURS_ORDER_PICKUP
+    df["BUSINESS_HOURS_ORDER_PICKUP"] = df.apply(
+        lambda row: business_hrs(row[order], 
+                                 row[pickup]), axis=1
+    )
+    return df
+
+def get_off_business_hours(df, order="ORDER_DATETIME_PST", pickup="PICKUP_DEADLINE_PST"):
+    """
+    Count number of hours from ORDER_DATETIME_PST to PICKUP_DEADLINE_PST that are not in 
+    the business hours. Create a new column called OFF_BUSINESS_HOURS_ORDER_PICKUP.
+
+    Args:
+        df (DataFrame): dataframe to add OFF_BUSINESS_HOURS_ORDER_PICKUP
+        order (Series): order date and time
+        pickup (Series): pickup date and time
+        
+    It takes about 1 minute to run.
+    """
+    import datetime
+    # packages to generate the rule of business hours and calculate the hours
+    import pytz
+    import businesstimedelta
+    import holidays as pyholidays
+    
+    # Assume the work rule is from 6PM to 8AM of the next day
+    # Weekdays from Monday to Friday
+    off_weekday = businesstimedelta.WorkDayRule(start_time=datetime.time(18),
+                                                end_time=datetime.time(8),
+                                                working_days=[0, 1, 2, 3, 4])
+
+    # Assume the work rule is the entire 24 hours
+    # On weekend
+    off_weekend = businesstimedelta.WorkDayRule(start_time=datetime.time(0),
+                                                end_time=datetime.time(23),
+                                                working_days=[5, 6])
+
+    # Don't add holidays. Assume we work on holidays
+
+    # Combine them to an off business hours plan
+    off_business_hours = businesstimedelta.Rules([off_weekday, off_weekend])
+    
+    def off_business_hrs(start, end):
+        diff_hours = off_business_hours.difference(start, end)
+        return diff_hours.hours + float(diff_hours.seconds) / float(3600)
+    
+    df["OFF_BUSINESS_HOURS_ORDER_PICKUP"] = df.apply(
+        lambda row: off_business_hrs(row[order], 
+                                     row[pickup]), axis=1
+    )
+    return df
+    
+def get_weekday(df, pickup="PICKUP_DEADLINE_PST"):
+    """
+    Get the day of the week of each pickup deadline. Create a new column called WEEKDAY_NUM.
+    
+    Args:
+        df (DataFrame): dataframe to add WEEKDAY_NUM
+        pickup (Series): pickup date and time
+    """
+    df["WEEKDAY_NUM"] = df[pickup].apply(lambda time: time.weekday())
+    return df                             
+
 def impute_mileage(df, drop=True):
     """
-    Imputes APPROXIMATE_DRIVING_ROUTE_MILEAGE with existing origin-destination pair values.
-
     Args:
         df (DataFrame): DataFrame to impute
         drop (bool, optional): Whether to drop previously unseen origin-destionation pairs. Defaults to True.
