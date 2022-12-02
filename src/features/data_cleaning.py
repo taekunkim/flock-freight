@@ -75,7 +75,7 @@ def flatten_ref_num(df, col="REFERENCE_NUMBER"):
 
     return df
 
-def join_offers_orders(offers, orders, on="REFERENCE_NUMBER"):
+def join_offers_orders(offers, orders, how="left", on="REFERENCE_NUMBER"):
     """
     Returns a table with each offer paired with its order
 
@@ -84,7 +84,7 @@ def join_offers_orders(offers, orders, on="REFERENCE_NUMBER"):
         orders (DataFrame): orders table
     """
 
-    return pd.merge(offers, orders, how="left", on=on)
+    return pd.merge(offers, orders, how=how, on=on)
 
 def get_remaining_time(df, past="CREATED_ON_HQ", future="PICKUP_DEADLINE_PST", new_col="REMAINIG_TIME"):
     """
@@ -152,3 +152,55 @@ def get_prorated_rate(df, delivered_only=False):
 
     return pooled
 
+def impute_mileage(df, drop=True):
+    """
+    Imputes APPROXIMATE_DRIVING_ROUTE_MILEAGE with existing origin-destination pair values.
+
+    Args:
+        df (DataFrame): DataFrame to impute
+        drop (bool, optional): Whether to drop previously unseen origin-destionation pairs. Defaults to True.
+    """
+
+    def impute_mileage_apply(df):
+        if not np.isnan(df["APPROXIMATE_DRIVING_ROUTE_MILEAGE"]):
+            return df["APPROXIMATE_DRIVING_ROUTE_MILEAGE"] 
+        if not np.isnan(dists[str(df["ORIGIN_CITY"]) + " " + str(df["DESTINATION_CITY"])]):
+            return dists[df["ORIGIN_CITY"] + " " + df["DESTINATION_CITY"]]
+        if df["ORIGIN_CITY"] == df["DESTINATION_CITY"]:
+            return 10
+        else:
+            return np.nan
+
+    origin_dest_pair = df["ORIGIN_CITY"] + " " + df["DESTINATION_CITY"]
+    mileage = df["APPROXIMATE_DRIVING_ROUTE_MILEAGE"]
+
+    from collections import defaultdict
+    dists = defaultdict(lambda : np.nan)
+    for pair, dist in zip(origin_dest_pair, mileage):
+        if not np.isnan(dist):
+            dists[pair] = dist
+
+    df["APPROXIMATE_DRIVING_ROUTE_MILEAGE"] = df.apply(impute_mileage_apply, axis=1)
+
+    if drop:
+        df = df[~df.isna()["APPROXIMATE_DRIVING_ROUTE_MILEAGE"]].reset_index(drop=True)
+
+    return df
+
+def popular_cities(df, cols, threshold=0.005):
+    """
+    Categorizes cities that appear in less than 0.5% of all rows as Others
+
+    Args:
+        df (DataFrame): DataFrame to manipulate
+        col (list): list of names of the columns to manipulate
+        threshold (float, optional): percentage threshold (0<x<1) to define what is "popular". Defaults to 0.05.
+
+    Returns:
+        _type_: _description_
+    """
+    for col in cols:
+        popular_cities = df[col] * (df.groupby(col)[col].transform("count") >= len(df) * threshold)
+        df[col] = pd.Series(np.where((popular_cities == ""), "Other", popular_cities))
+
+    return df
