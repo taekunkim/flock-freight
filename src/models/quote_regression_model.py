@@ -1,4 +1,4 @@
-def generate_quote_regression_pipeline(df_full, max_categories=30):
+def generate_quote_regression_pipeline(df_full, max_categories=30, new_grid_search=False):
   """
   Creates pipeline for regression model to predict RATE of an item having "quote" label.
 
@@ -26,8 +26,8 @@ def generate_quote_regression_pipeline(df_full, max_categories=30):
 
     Args:
         pl (Pipeline): Pipeline that builds regression model
-        df_X_train (DataFrane): train dataframe of X value.
-        df_y_train (DataFrane): train dataframe of y value.
+        df_X_train (DataFrame): train dataframe of X value.
+        df_y_train (DataFrame): train dataframe of y value.
 
     Returns:
         grid_pipeline.best_params_ : The best parameter from  range 0.01 to 10
@@ -61,7 +61,7 @@ def generate_quote_regression_pipeline(df_full, max_categories=30):
   df_full = df_full[req_cols]
 
   # only quote
-  df_full = df_full[df_full["OFFER_TYPE"] == "quote"]
+  df_full = df_full[df_full["OFFER_TYPE"] == "quote"].reset_index(drop=True)
   df_full = df_full.drop(["OFFER_TYPE"], axis=1)
 
   # split features and labels
@@ -89,15 +89,16 @@ def generate_quote_regression_pipeline(df_full, max_categories=30):
         ("categorization", cat_transformer, cat_feat)
     ])
 
-  # create pipeline
-  pl = Pipeline(steps=[('preprocessor', preproc), ('regressor', Ridge(alpha = 1))])
-
-  # grid search
-  best_parameter = grid_search(pl, df_X_train, df_y_train)
-
-  pl = Pipeline(steps=[('preprocessor', preproc), ('regressor', Ridge(alpha = best_parameter['regressor__alpha']))])
+  if new_grid_search:
+    # grid search
+    best_parameter = grid_search(pl, df_X_train, df_y_train)
+    pl = Pipeline(steps=[('preprocessor', preproc), ('regressor', Ridge(alpha = best_parameter['regressor__alpha']))])
+  
+  else:
+    # create pipeline
+    pl = Pipeline(steps=[('preprocessor', preproc), ('regressor', Ridge(alpha = 1))])
 
   # train model
   pl.fit(df_X_train, df_y_train)
-
+  
   return pl, (df_X_test, df_y_test)
