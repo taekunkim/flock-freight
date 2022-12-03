@@ -1,4 +1,4 @@
-def generate_probability_pipeline(df):
+def generate_pooled_regression_pipeline(df):
     import sklearn.preprocessing as pp
     from sklearn.model_selection import train_test_split
     from sklearn.metrics import mean_squared_error
