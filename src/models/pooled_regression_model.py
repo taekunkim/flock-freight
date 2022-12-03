@@ -1,4 +1,17 @@
 def generate_pooled_regression_pipeline(df_full):
+    """
+    Creates pipeline for regression model to predict RATE of an item having "pool" label.
+
+    Args:
+        df_full (DataFrame): dataframe to train model on
+        max_categories (int, optional): maximum number of categorical values to be onehot encoded. Defaults to 30.
+
+    Returns:
+        Pipeline: pipeline of feature transformation and model
+        df_X_test: DataFrame of test set features
+        df_y_test: DataFrame of test set labels
+    """
+
     import pandas as pd
     import sklearn.preprocessing as pp
     from sklearn.model_selection import train_test_split
