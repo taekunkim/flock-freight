@@ -296,3 +296,18 @@ def popular_cities(df, cols, threshold=0.005):
         df[col] = pd.Series(np.where((popular_cities == ""), "Other", popular_cities))
 
     return df
+
+def get_remaining_time_in_seconds(df, col_name):
+    """
+    From timedelta data (0 days 06:54:17) to seconds (98437.0)
+
+    Args:
+        df (DataFrame): DataFrame to manipulate
+        col_name (str): name of the column to manipulate
+    """
+    def total_seconds(x):
+        return x.total_seconds()
+        
+    df[col_name] = df[col_name].apply(total_seconds)
+
+    return df
