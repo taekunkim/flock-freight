@@ -1,4 +1,4 @@
-def generate_quote_regression_pipeline(df_full, max_categories=30, new_grid_search=False):
+def generate_quote_regression_pipeline(df_full, max_categories=30):
   """
   Creates pipeline for regression model to predict RATE of an item having "quote" label.
 
@@ -20,28 +20,8 @@ def generate_quote_regression_pipeline(df_full, max_categories=30, new_grid_sear
   from sklearn.model_selection import GridSearchCV
   from sklearn.model_selection import train_test_split
 
-  def grid_search(pl, df_X_train, df_y_train):
-    """
-    Grid search for regression model to find out the best parameter.
-
-    Args:
-        pl (Pipeline): Pipeline that builds regression model
-        df_X_train (DataFrame): train dataframe of X value.
-        df_y_train (DataFrame): train dataframe of y value.
-
-    Returns:
-        grid_pipeline.best_params_ : The best parameter from  range 0.01 to 10
-    """
-    parameters = {
-        "regressor__alpha":[0.0001, 0.001, 0.01, 0.1, 1, 10, 100]
-    }
-
-    # initialize
-    grid_pipeline = GridSearchCV(pl,parameters, cv = 8)
-
-    grid_pipeline.fit(df_X_train,df_y_train)
-
-    return grid_pipeline.best_params_
+  BEST_MODEL = Ridge
+  BEST_PARAMETERS = {"alpha": 1.0}
 
   # check df_full is a DataFrame
   if not isinstance(df_full, pd.DataFrame): AssertionError("Parameter must be Pandas DataFrame")
@@ -50,7 +30,7 @@ def generate_quote_regression_pipeline(df_full, max_categories=30, new_grid_sear
   req_cols = ['RATE_USD', 'APPROXIMATE_DRIVING_ROUTE_MILEAGE', 'PALLETIZED_LINEAR_FEET',
        'ORIGIN_CITY', 'DESTINATION_CITY', 'ORDER_DAY', 'ORDER_MONTH',
        'ORDER_HOUR', 'PICKUP_DAY', 'PICKUP_MONTH', 'PICKUP_HOUR',
-       'REMAINIG_TIME', 'BUSINESS_HOURS', 'BUSINESS_HOURS_ORDER_PICKUP', "OFFER_TYPE"]
+       'REMAINIG_TIME', 'BUSINESS_HOURS', 'BUSINESS_HOURS_ORDER_PICKUP', "OFFER_TYPE", "LOAD_DELIVERED_FROM_OFFER"]
 
   if not set(req_cols).issubset(set(df_full.columns)): AssertionError("DataFrame does not contain required columns")
 
@@ -89,14 +69,8 @@ def generate_quote_regression_pipeline(df_full, max_categories=30, new_grid_sear
         ("categorization", cat_transformer, cat_feat)
     ])
 
-  if new_grid_search:
-    # grid search
-    best_parameter = grid_search(pl, df_X_train, df_y_train)
-    pl = Pipeline(steps=[('preprocessor', preproc), ('regressor', Ridge(alpha = best_parameter['regressor__alpha']))])
-  
-  else:
-    # create pipeline
-    pl = Pipeline(steps=[('preprocessor', preproc), ('regressor', Ridge(alpha = 1))])
+  # create pipeline
+  pl = Pipeline(steps=[('preprocessor', preproc), ('regressor', BEST_MODEL(BEST_PARAMETERS))])
 
   # train model
   pl.fit(df_X_train, df_y_train)
