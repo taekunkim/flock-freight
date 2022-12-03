@@ -98,6 +98,7 @@ def get_remaining_time(df, past="CREATED_ON_HQ", future="PICKUP_DEADLINE_PST", n
     """
 
     df["REMAINIG_TIME"] = df[future] - df[past]
+    df = df[df["REMAINIG_TIME"]>0].reset_index(drop=True)
 
     return df
 
@@ -165,7 +166,6 @@ def get_business_hours(df, order="ORDER_DATETIME_PST", pickup="PICKUP_DEADLINE_P
     """
     import datetime
     # packages to generate the rule of business hours and calculate the hours
-    import pytz
     import businesstimedelta
     import holidays as pyholidays
     
@@ -206,9 +206,7 @@ def get_off_business_hours(df, order="ORDER_DATETIME_PST", pickup="PICKUP_DEADLI
     """
     import datetime
     # packages to generate the rule of business hours and calculate the hours
-    import pytz
     import businesstimedelta
-    import holidays as pyholidays
     
     # Assume the work rule is from 6PM to 8AM of the next day
     # Weekdays from Monday to Friday
