@@ -98,7 +98,7 @@ def get_remaining_time(df, past="CREATED_ON_HQ", future="PICKUP_DEADLINE_PST", n
     """
 
     df["REMAINIG_TIME"] = df[future] - df[past]
-    df = df[df["REMAINIG_TIME"]>0].reset_index(drop=True)
+    df = df[df["REMAINIG_TIME"]>=pd.Timedelta(0)].reset_index(drop=True)
 
     return df
 
@@ -294,5 +294,14 @@ def popular_cities(df, cols, threshold=0.005):
     for col in cols:
         popular_cities = df[col] * (df.groupby(col)[col].transform("count") >= len(df) * threshold)
         df[col] = pd.Series(np.where((popular_cities == ""), "Other", popular_cities))
+
+    return df
+
+def parse_datetime(df, cols=["ORDER_DATETIME_PST", "PICKUP_DEADLINE_PST"], ):
+    for col in cols:
+        datetime_col = df[col]
+        df[col.split("_")[0]+"_DAY"] = datetime_col.dt.dayofweek
+        df[col.split("_")[0]+"_MONTH"] = datetime_col.dt.month
+        df[col.split("_")[0]+"_HOUR"] = datetime_col.dt.hour
 
     return df
