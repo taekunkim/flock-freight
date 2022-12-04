@@ -1,4 +1,4 @@
-def generate_probability_pipeline(df_full, max_categories=30):
+def generate_probability_pipeline(df_full, max_categories=30, random_state=42):
     """
     Creates pipeline for predicting probability of an item having "poole" label.
 
@@ -44,7 +44,7 @@ def generate_probability_pipeline(df_full, max_categories=30):
     df_y = df_full["OFFER_TYPE"] == "pool"
 
     # split train test
-    df_X_train, df_X_test, df_y_train, df_y_test = train_test_split(df_X, df_y, test_size=0.3, random_state=42)
+    df_X_train, df_X_test, df_y_train, df_y_test = train_test_split(df_X, df_y, test_size=0.3, random_state=random_state)
 
     # create numerical value transformer
     num_feat = ["BUSINESS_HOURS", "APPROXIMATE_DRIVING_ROUTE_MILEAGE", "PALLETIZED_LINEAR_FEET", "BUSINESS_HOURS_ORDER_PICKUP"]

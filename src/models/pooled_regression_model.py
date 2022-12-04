@@ -1,4 +1,4 @@
-def generate_pooled_regression_pipeline(df_full):
+def generate_pooled_regression_pipeline(df_full, max_categories=30, random_state=42):
     """
     Creates pipeline for regression model to predict RATE of an item having "pool" label.
 
@@ -46,7 +46,7 @@ def generate_pooled_regression_pipeline(df_full):
     df_X = df_full.drop(["PRORATED_RATE_USD"], axis=1)
     df_y = df_full["PRORATED_RATE_USD"]
 
-    df_X_train, df_X_test, df_y_train, df_y_test = train_test_split(df_X, df_y, test_size=0.3)
+    df_X_train, df_X_test, df_y_train, df_y_test = train_test_split(df_X, df_y, test_size=0.3, random_state=random_state)
 
     # Numerical columns and associated transformers
     num_feat = ["APPROXIMATE_DRIVING_ROUTE_MILEAGE", "PALLETIZED_LINEAR_FEET",
@@ -59,7 +59,7 @@ def generate_pooled_regression_pipeline(df_full):
     cat_feat = ["ORIGIN_CITY", "DESTINATION_CITY", "BUSINESS_HOURS",
                 "ORDER_DAY", "ORDER_MONTH", "ORDER_HOUR",
                 "PICKUP_DAY", "PICKUP_MONTH", "PICKUP_HOUR"]
-    cat_transformer = Pipeline(steps=[('onehot', pp.OneHotEncoder(max_categories = 30, handle_unknown = 'ignore'))
+    cat_transformer = Pipeline(steps=[('onehot', pp.OneHotEncoder(max_categories = max_categories, handle_unknown = 'ignore'))
     ])
 
     # Preprocessing pipeline (put them together)
