@@ -10,6 +10,9 @@ def change_to_date(df, cols):
         cols (list): list of columns
     """
 
+    # deep copy
+    df = df.copy()
+
     df[cols] = df[cols].apply(pd.to_datetime, errors="coerce")
     return df
 
@@ -17,6 +20,9 @@ def parse_zipcode(df, cols=["ORIGIN_3DIGIT_ZIP", "DESTINATION_3DIGIT_ZIP"], new_
 
     from postalcodes_ca import fsa_codes
     import json
+
+    # deep copy
+    df = df.copy()
 
     USZIPCODE_FILE = "data/threeDigitZipCodes.json"
 
@@ -65,6 +71,8 @@ def flatten_ref_num(df, col="REFERENCE_NUMBER"):
         df (DataFrame): dataframe to flatten
         cols (_type_): columns to flatten
     """
+    # deep copy
+    df = df.copy()
 
     if col=="REFERENCE_NUMBER": 
         # REFERENCE_NUMBER column has a unique pattern of list elements where \n exists between every item
@@ -84,6 +92,10 @@ def join_offers_orders(offers, orders, how="left", on="REFERENCE_NUMBER"):
         orders (DataFrame): orders table
     """
 
+    # deep copy
+    offers = offers.copy()
+    orders = orders.copy()
+
     return pd.merge(offers, orders, how=how, on=on)
 
 def get_remaining_time(df, past="CREATED_ON_HQ", future="PICKUP_DEADLINE_PST", new_col="REMAINIG_TIME"):
@@ -97,6 +109,8 @@ def get_remaining_time(df, past="CREATED_ON_HQ", future="PICKUP_DEADLINE_PST", n
         new_col (str): name of column to store the remaining time. Defaults to "REMAINIG_TIME".
 
     """
+    # deep copy
+    df = df.copy()
 
     df["REMAINIG_TIME"] = (df[future] - df[past]).dt.total_seconds()
     df = df[df["REMAINIG_TIME"]>=0].reset_index(drop=True)
@@ -110,6 +124,9 @@ def during_business_hours(df):
     Args:
         df (DataFrame): DataFrame to study
     """
+
+    # deep copy
+    df = df.copy()
 
     hours = df["CREATED_ON_HQ"].dt.hour
     hours = ((hours >= 8) | (hours <= 18))
@@ -132,6 +149,10 @@ def get_prorated_rate(df, delivered_only=False):
         delivered_only (boolean): whether to filter for only offers that were chosen
 
     """
+
+    # deep copy
+    df = df.copy()
+
     # filters for pooled offers
     pooled = df[df["OFFER_TYPE"]=="pool"].reset_index(drop=True).drop("OFFER_TYPE", axis=1)
 
@@ -165,6 +186,11 @@ def get_business_hours(df, order="ORDER_DATETIME_PST", pickup="PICKUP_DEADLINE_P
         
     It takes about 2 minutes to run.
     """
+
+    # deep copy
+    df = df.copy()
+
+
     import datetime
     # packages to generate the rule of business hours and calculate the hours
     import businesstimedelta
@@ -201,6 +227,10 @@ def impute_mileage(df, drop=True):
     """
 
     def impute_mileage_apply(df):
+
+        # deep copy
+        df = df.copy()
+
         if not np.isnan(df["APPROXIMATE_DRIVING_ROUTE_MILEAGE"]):
             return df["APPROXIMATE_DRIVING_ROUTE_MILEAGE"] 
         if not np.isnan(dists[str(df["ORIGIN_CITY"]) + " " + str(df["DESTINATION_CITY"])]):
@@ -209,6 +239,9 @@ def impute_mileage(df, drop=True):
             return 10
         else:
             return np.nan
+
+    # deep copy
+    df = df.copy()
 
     origin_dest_pair = df["ORIGIN_CITY"] + " " + df["DESTINATION_CITY"]
     mileage = df["APPROXIMATE_DRIVING_ROUTE_MILEAGE"]
@@ -238,6 +271,9 @@ def popular_cities(df, cols, threshold=0.005):
     Returns:
         _type_: _description_
     """
+    # deep copy
+    df = df.copy()
+
     for col in cols:
         popular_cities = df[col] * (df.groupby(col)[col].transform("count") >= len(df) * threshold)
         df[col] = pd.Series(np.where((popular_cities == ""), "Other", popular_cities))
@@ -245,6 +281,10 @@ def popular_cities(df, cols, threshold=0.005):
     return df
 
 def parse_datetime(df, cols=["ORDER_DATETIME_PST", "PICKUP_DEADLINE_PST"]):
+    
+    # deep copy
+    df = df.copy()
+
     for col in cols:
         datetime_col = df[col]
         df[col.split("_")[0]+"_DAY"] = datetime_col.dt.dayofweek
