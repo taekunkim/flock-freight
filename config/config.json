@@ -1,0 +1,41 @@
+{
+    "data": {
+        "raw": {
+            "dir": {
+                "offers": "data/offer_acceptance_offers.csv",
+                "orders": "data/offer_acceptance_orders.csv"
+            },
+            "req_cols": {
+                "offers": [
+                    "CARRIER_ID",
+                    "REFERENCE_NUMBER",
+                    "CREATED_ON_HQ",
+                    "RATE_USD",
+                    "OFFER_TYPE",
+                    "LOAD_DELIVERED_FROM_OFFER"
+                ],
+                "orders": [
+                    "REFERENCE_NUMBER",
+                    "ORDER_DATETIME_PST",
+                    "PICKUP_DEADLINE_PST",
+                    "ORIGIN_3DIGIT_ZIP",
+                    "DESTINATION_3DIGIT_ZIP",
+                    "APPROXIMATE_DRIVING_ROUTE_MILEAGE",
+                    "PALLETIZED_LINEAR_FEET"
+                ]
+            }
+        }
+    },
+    "pooled_proba_model": {
+        "BEST_MODEL": [],
+        "BEST_PARAMETERS": {}
+    },
+    "quote_regression_model": {
+        "BEST_MODEL": [],
+        "BEST_PARAMETERS": {}
+    },
+    "pooled_regression_model": {
+        "BEST_MODEL": [],
+        "BEST_PARAMETERS": {}
+    }
+}

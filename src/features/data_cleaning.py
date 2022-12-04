@@ -18,6 +18,7 @@ def parse_zipcode(df, cols=["ORIGIN_3DIGIT_ZIP", "DESTINATION_3DIGIT_ZIP"], new_
     from postalcodes_ca import fsa_codes
     import json
 
+    USZIPCODE_FILE = "data/threeDigitZipCodes.json"
 
     def parse_zipcode_(zipcode):
         """
@@ -47,7 +48,7 @@ def parse_zipcode(df, cols=["ORIGIN_3DIGIT_ZIP", "DESTINATION_3DIGIT_ZIP"], new_
                 return np.nan
 
     # reads in US zipcode dictionary
-    with open("../data/threeDigitZipCodes.json") as json_file:
+    with open(USZIPCODE_FILE) as json_file:
         zipcode_dict = json.load(json_file)
 
     # parses one column at a time

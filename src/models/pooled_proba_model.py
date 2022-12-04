@@ -19,6 +19,9 @@ def generate_probability_pipeline(df_full, max_categories=30):
     from sklearn.preprocessing import OneHotEncoder
     import xgboost
 
+    BEST_MODEL = xgboost.XGBClassifier
+    BEST_PARAMETERS = {"max_depth": 7, "n_estimators": 100, "reg_alpha": 5, "reg_lambda": 0}
+
     # check df_full is a DataFrame
     if not isinstance(df_full, pd.DataFrame): AssertionError("Parameter must be Pandas DataFrame")
 
@@ -65,7 +68,7 @@ def generate_probability_pipeline(df_full, max_categories=30):
     # create pipeline
     pipeline = Pipeline(steps=[
         ('preprocessor', preproc), 
-        ("xgb", xgboost.XGBClassifier(max_depth=7, n_estimators=100, reg_alpha=5, reg_lambda=0))
+        ("xgb", BEST_MODEL(BEST_PARAMETERS))
     ])
 
     # train model
