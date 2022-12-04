@@ -17,11 +17,10 @@ def generate_quote_regression_pipeline(df_full, max_categories=30):
   from sklearn.preprocessing import MaxAbsScaler
   from sklearn.pipeline import Pipeline
   from sklearn.linear_model import Ridge
-  from sklearn.model_selection import GridSearchCV
   from sklearn.model_selection import train_test_split
 
-  BEST_MODEL = Ridge
-  BEST_PARAMETERS = {"alpha": 1.0}
+  # BEST_MODEL = Ridge(alpha = 1)
+  BEST_PARAMETERS = {"alpha": 34}
 
   # check df_full is a DataFrame
   if not isinstance(df_full, pd.DataFrame): AssertionError("Parameter must be Pandas DataFrame")
@@ -70,7 +69,7 @@ def generate_quote_regression_pipeline(df_full, max_categories=30):
     ])
 
   # create pipeline
-  pl = Pipeline(steps=[('preprocessor', preproc), ('regressor', BEST_MODEL(BEST_PARAMETERS))])
+  pl = Pipeline(steps=[('preprocessor', preproc), ('regressor', Ridge(alpha = BEST_PARAMETERS['alpha']))])
 
   # train model
   pl.fit(df_X_train, df_y_train)
