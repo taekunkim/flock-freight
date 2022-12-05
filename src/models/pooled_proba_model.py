@@ -29,7 +29,7 @@ def generate_probability_pipeline(df_full, max_categories=30, split_test=False, 
     req_cols = ['LOAD_DELIVERED_FROM_OFFER', 'APPROXIMATE_DRIVING_ROUTE_MILEAGE', 'PALLETIZED_LINEAR_FEET',
        'ORIGIN_CITY', 'DESTINATION_CITY', 'ORDER_DAY', 'ORDER_MONTH',
        'ORDER_HOUR', 'PICKUP_DAY', 'PICKUP_MONTH', 'PICKUP_HOUR',
-       'BUSINESS_HOURS', 'BUSINESS_HOURS_ORDER_PICKUP', "OFFER_TYPE", "REMAINING_TIME"]
+       'BUSINESS_HOURS', 'BUSINESS_HOURS_ORDER_PICKUP', "OFFER_TYPE", "REMAINIG_TIME"]
 
     if not set(req_cols).issubset(set(df_full.columns)): AssertionError("DataFrame does not contain required columns")
 
