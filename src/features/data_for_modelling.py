@@ -1,13 +1,19 @@
 import pandas as pd
 import numpy as np
-import data_cleaning
+from src.features import data_cleaning
 import json
 
 # read config file
-with open("config/config.json", "r") as config_file:
+with open("./config/config.json", "r") as config_file:
     config = json.load(config_file)
 
 def get_raw_data():
+    """
+    Returns raw data for EDA and Train-Test split purposes.
+
+    Returns:
+        DataFrame: tuple of orders and offers DataFrame
+    """
     orders = pd.read_csv(config["data"]["raw"]["dir"]["orders"], low_memory=False)[config["data"]["raw"]["req_cols"]["orders"]]
     offers = pd.read_csv(config["data"]["raw"]["dir"]["offers"], low_memory=False)[list(config["data"]["raw"]["req_cols"]["offers"])]
 
@@ -27,7 +33,19 @@ def clean_all(orders, offers):
     merged = data_cleaning.during_business_hours(merged)
     merged = data_cleaning.impute_mileage(merged)
     merged = data_cleaning.get_business_hours(merged)
+    merged = data_cleaning.get_prorated_rate(merged)
 
-    pooled = data_cleaning.get_prorated_rate(merged)
+    return orders, offers, merged
 
-    return orders, offers, merged, pooled
+def split_train_test(merged, test_ratio=0.3):
+    import numpy as np
+    # here, we only consider delivered offers for both training and testing
+    delivered = merged[merged["LOAD_DELIVERED_FROM_OFFER"]]
+
+    test_size = int(delivered.shape[0]*test_ratio)
+    test_ref = np.random.choice(delivered["REFERENCE_NUMBER"], size=test_size, replace=False)
+
+    test_set = merged[merged["REFERENCE_NUMBER"].isin(test_ref)]
+    train_set = merged[~merged["REFERENCE_NUMBER"].isin(test_ref)]
+    
+    return train_set, test_set

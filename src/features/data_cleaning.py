@@ -112,8 +112,8 @@ def get_remaining_time(df, past="CREATED_ON_HQ", future="PICKUP_DEADLINE_PST", n
     # deep copy
     df = df.copy()
 
-    df["REMAINIG_TIME"] = (df[future] - df[past]).dt.total_seconds()
-    df = df[df["REMAINIG_TIME"]>=0].reset_index(drop=True)
+    df[new_col] = (df[future] - df[past]).dt.total_seconds()
+    df = df[df[new_col]>=0].reset_index(drop=True)
 
     return df
 
@@ -153,26 +153,23 @@ def get_prorated_rate(df, delivered_only=False):
     # deep copy
     df = df.copy()
 
-    # filters for pooled offers
-    pooled = df[df["OFFER_TYPE"]=="pool"].reset_index(drop=True).drop("OFFER_TYPE", axis=1)
-
     # filters for delivered offers
     if delivered_only:
-        pooled = pooled[pooled["LOAD_DELIVERED_FROM_OFFER"]].reset_index(drop=True).drop("LOAD_DELIVERED_FROM_OFFER", axis=1)
+        df = df[df["LOAD_DELIVERED_FROM_OFFER"]].reset_index(drop=True).drop("LOAD_DELIVERED_FROM_OFFER", axis=1)
 
     # assigns unique value to each offer for future data aggregation purposes
-    pooled["OFFER_ID"] = pooled["CARRIER_ID"] + " " + pooled["CREATED_ON_HQ"].apply(lambda x: str(x))
+    df["OFFER_ID"] = df["CARRIER_ID"] + " " + df["CREATED_ON_HQ"].apply(lambda x: str(x))
 
     # records the sum of [linear feet] of all orders inlcuded in an offer
-    total_feet = pooled.groupby("OFFER_ID")["PALLETIZED_LINEAR_FEET"].transform("sum")
+    total_feet = df.groupby("OFFER_ID")["PALLETIZED_LINEAR_FEET"].transform("sum")
 
     # calculates the prorated rate
-    pooled["PRORATED_RATE_USD"] = pooled["RATE_USD"] * pooled["PALLETIZED_LINEAR_FEET"] / total_feet
+    df["PRORATED_RATE_USD"] = df["RATE_USD"] * df["PALLETIZED_LINEAR_FEET"] / total_feet
 
     # drops OFFER_ID
-    pooled = pooled.drop("OFFER_ID", axis=1)
+    df = df.drop("OFFER_ID", axis=1)
 
-    return pooled
+    return df
 
 def get_business_hours(df, order="ORDER_DATETIME_PST", pickup="PICKUP_DEADLINE_PST"):
     """

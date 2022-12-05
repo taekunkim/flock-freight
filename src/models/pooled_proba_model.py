@@ -1,4 +1,4 @@
-def generate_probability_pipeline(df_full, max_categories=30, random_state=42):
+def generate_probability_pipeline(df_full, max_categories=30, split_test=False, random_state=42):
     """
     Creates pipeline for predicting probability of an item having "poole" label.
 
@@ -41,10 +41,7 @@ def generate_probability_pipeline(df_full, max_categories=30, random_state=42):
 
     # split features and labels
     df_X = df_full.drop("OFFER_TYPE", axis=1)
-    df_y = df_full["OFFER_TYPE"] == "pool"
-
-    # split train test
-    df_X_train, df_X_test, df_y_train, df_y_test = train_test_split(df_X, df_y, test_size=0.3, random_state=random_state)
+    df_y = df_full["OFFER_TYPE"] == "pool"    
 
     # create numerical value transformer
     num_feat = ["BUSINESS_HOURS", "APPROXIMATE_DRIVING_ROUTE_MILEAGE", "PALLETIZED_LINEAR_FEET", "BUSINESS_HOURS_ORDER_PICKUP"]
@@ -68,10 +65,22 @@ def generate_probability_pipeline(df_full, max_categories=30, random_state=42):
     # create pipeline
     pipeline = Pipeline(steps=[
         ('preprocessor', preproc), 
-        ("xgb", BEST_MODEL(BEST_PARAMETERS))
+        ("xgb", BEST_MODEL(**BEST_PARAMETERS))
     ])
 
-    # train model
-    pipeline.fit(df_X_train, df_y_train)
+    if split_test:
+        # split train test
+        df_X_train, df_X_test, df_y_train, df_y_test = train_test_split(df_X, df_y, test_size=0.3, random_state=random_state)
 
-    return pipeline, (df_X_test, df_y_test)
+        # train model
+        pipeline.fit(df_X_train, df_y_train)
+
+        return pipeline, (df_X_test, df_y_test)
+
+    else:
+        # train model
+        pipeline.fit(df_X, df_y)
+
+        return pipeline, (None, None)
+
+    

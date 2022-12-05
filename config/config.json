@@ -21,7 +21,8 @@
                     "ORIGIN_3DIGIT_ZIP",
                     "DESTINATION_3DIGIT_ZIP",
                     "APPROXIMATE_DRIVING_ROUTE_MILEAGE",
-                    "PALLETIZED_LINEAR_FEET"
+                    "PALLETIZED_LINEAR_FEET",
+                    "ESTIMATED_COST_AT_ORDER"
                 ]
             }
         }
