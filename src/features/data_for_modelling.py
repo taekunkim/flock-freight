@@ -47,5 +47,8 @@ def split_train_test(merged, test_ratio=0.3):
 
     test_set = merged[merged["REFERENCE_NUMBER"].isin(test_ref)]
     train_set = merged[~merged["REFERENCE_NUMBER"].isin(test_ref)]
+
+    test_set = test_set.sort_values(by=["REFERENCE_NUMBER", "CREATED_ON_HQ"], ascending=True)
+    train_set = train_set.sort_values(by=["REFERENCE_NUMBER", "CREATED_ON_HQ"], ascending=True)
     
     return train_set, test_set
