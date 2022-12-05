@@ -1,4 +1,4 @@
-def generate_probability_pipeline(df_full, max_categories=30, split_test=False, random_state=42):
+def generate_probability_pipeline(df_full, max_categories=30, split_test=False, random_state=42, grid_search=False):
     """
     Creates pipeline for predicting probability of an item having "poole" label.
 
@@ -29,7 +29,7 @@ def generate_probability_pipeline(df_full, max_categories=30, split_test=False, 
     req_cols = ['LOAD_DELIVERED_FROM_OFFER', 'APPROXIMATE_DRIVING_ROUTE_MILEAGE', 'PALLETIZED_LINEAR_FEET',
        'ORIGIN_CITY', 'DESTINATION_CITY', 'ORDER_DAY', 'ORDER_MONTH',
        'ORDER_HOUR', 'PICKUP_DAY', 'PICKUP_MONTH', 'PICKUP_HOUR',
-       'BUSINESS_HOURS', 'BUSINESS_HOURS_ORDER_PICKUP', "OFFER_TYPE"]
+       'BUSINESS_HOURS', 'BUSINESS_HOURS_ORDER_PICKUP', "OFFER_TYPE", "REMAINING_TIME"]
 
     if not set(req_cols).issubset(set(df_full.columns)): AssertionError("DataFrame does not contain required columns")
 
@@ -41,10 +41,10 @@ def generate_probability_pipeline(df_full, max_categories=30, split_test=False, 
 
     # split features and labels
     df_X = df_full.drop("OFFER_TYPE", axis=1)
-    df_y = df_full["OFFER_TYPE"] == "pool"    
+    df_y = (df_full["OFFER_TYPE"] == "pool") * 1
 
     # create numerical value transformer
-    num_feat = ["BUSINESS_HOURS", "APPROXIMATE_DRIVING_ROUTE_MILEAGE", "PALLETIZED_LINEAR_FEET", "BUSINESS_HOURS_ORDER_PICKUP"]
+    num_feat = ["BUSINESS_HOURS", "APPROXIMATE_DRIVING_ROUTE_MILEAGE", "PALLETIZED_LINEAR_FEET", "BUSINESS_HOURS_ORDER_PICKUP", "REMAINING_TIME"]
     num_transformer = Pipeline(steps=[
         ('scaler', MaxAbsScaler()) # z-scale
     ])
