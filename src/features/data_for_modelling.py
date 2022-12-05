@@ -3,17 +3,17 @@ import numpy as np
 from src.features import data_cleaning
 import json
 
-# read config file
-with open("./config/config.json", "r") as config_file:
-    config = json.load(config_file)
-
-def get_raw_data():
+def get_raw_data(config_dir):
     """
     Returns raw data for EDA and Train-Test split purposes.
 
     Returns:
         DataFrame: tuple of orders and offers DataFrame
     """
+    # read config file
+    with open(config_dir, "r") as config_file:
+        config = json.load(config_file)
+
     orders = pd.read_csv(config["data"]["raw"]["dir"]["orders"], low_memory=False)[config["data"]["raw"]["req_cols"]["orders"]]
     offers = pd.read_csv(config["data"]["raw"]["dir"]["offers"], low_memory=False)[list(config["data"]["raw"]["req_cols"]["offers"])]
 

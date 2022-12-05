@@ -1,0 +1,4 @@
+{
+    "dockerhub-id": "amfraenkel/fair-policing-project",
+    "build-script": "python run.py"
+}
