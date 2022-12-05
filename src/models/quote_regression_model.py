@@ -29,7 +29,7 @@ def generate_quote_regression_pipeline(df_full, max_categories=30, split_test=Fa
     req_cols = ['RATE_USD', 'APPROXIMATE_DRIVING_ROUTE_MILEAGE', 'PALLETIZED_LINEAR_FEET',
         'ORIGIN_CITY', 'DESTINATION_CITY', 'ORDER_DAY', 'ORDER_MONTH',
         'ORDER_HOUR', 'PICKUP_DAY', 'PICKUP_MONTH', 'PICKUP_HOUR',
-        'REMAINIG_TIME', 'BUSINESS_HOURS', 'BUSINESS_HOURS_ORDER_PICKUP', "OFFER_TYPE", "LOAD_DELIVERED_FROM_OFFER"]
+        'REMAINING_TIME', 'BUSINESS_HOURS', 'BUSINESS_HOURS_ORDER_PICKUP', "OFFER_TYPE", "LOAD_DELIVERED_FROM_OFFER"]
 
     if not set(req_cols).issubset(set(df_full.columns)): AssertionError("DataFrame does not contain required columns")
 
@@ -51,7 +51,7 @@ def generate_quote_regression_pipeline(df_full, max_categories=30, split_test=Fa
     df_X_train, df_X_test, df_y_train, df_y_test = train_test_split(df_X, df_y, test_size=0.3, random_state=random_state)
 
     # create numerical value transformer
-    num_feat = ["APPROXIMATE_DRIVING_ROUTE_MILEAGE", "PALLETIZED_LINEAR_FEET", "REMAINIG_TIME", 'BUSINESS_HOURS_ORDER_PICKUP']
+    num_feat = ["APPROXIMATE_DRIVING_ROUTE_MILEAGE", "PALLETIZED_LINEAR_FEET", "REMAINING_TIME", 'BUSINESS_HOURS_ORDER_PICKUP']
     num_transformer = Pipeline(steps=[
         ('scaler', MaxAbsScaler())
     ])

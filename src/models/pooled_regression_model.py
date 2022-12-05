@@ -28,7 +28,7 @@ def generate_pooled_regression_pipeline(df_full, max_categories=30, split_test=F
     if not isinstance(df_full, pd.DataFrame): AssertionError("Parameter must be Pandas DataFrame")
 
     req_cols = ["APPROXIMATE_DRIVING_ROUTE_MILEAGE", "PALLETIZED_LINEAR_FEET", 
-            "BUSINESS_HOURS", "REMAINIG_TIME",
+            "BUSINESS_HOURS", "REMAINING_TIME",
             "ORDER_DAY", "ORDER_MONTH", "ORDER_HOUR",
             "PICKUP_DAY", "PICKUP_MONTH", "PICKUP_HOUR",
             "BUSINESS_HOURS_ORDER_PICKUP",
@@ -51,7 +51,7 @@ def generate_pooled_regression_pipeline(df_full, max_categories=30, split_test=F
 
     # Numerical columns and associated transformers
     num_feat = ["APPROXIMATE_DRIVING_ROUTE_MILEAGE", "PALLETIZED_LINEAR_FEET",
-                "BUSINESS_HOURS_ORDER_PICKUP", "REMAINIG_TIME"]
+                "BUSINESS_HOURS_ORDER_PICKUP", "REMAINING_TIME"]
     num_transformer = Pipeline(steps=[
         ('scaler', pp.MaxAbsScaler())
     ])

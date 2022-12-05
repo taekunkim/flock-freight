@@ -98,7 +98,7 @@ def join_offers_orders(offers, orders, how="left", on="REFERENCE_NUMBER"):
 
     return pd.merge(offers, orders, how=how, on=on)
 
-def get_remaining_time(df, past="CREATED_ON_HQ", future="PICKUP_DEADLINE_PST", new_col="REMAINIG_TIME"):
+def get_remaining_time(df, past="CREATED_ON_HQ", future="PICKUP_DEADLINE_PST", new_col="REMAINING_TIME"):
     """
     Calculates remaining delivery time from when an offer is made.
 
