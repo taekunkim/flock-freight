@@ -1,0 +1,64 @@
+Metadata-Version: 2.1
+Name: o
+Version: 0.0.2b2
+Summary: Get operator information.
+Home-page: https://github.com/Kreusada/Operators
+Author: Kreusada
+Author-email: kreusadaprojects@gmail.com
+License: UNKNOWN
+Platform: UNKNOWN
+Classifier: Development Status :: 4 - Beta
+Classifier: Programming Language :: Python :: 3.8
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Operating System :: OS Independent
+Classifier: Operating System :: MacOS :: MacOS X
+Classifier: Operating System :: Microsoft :: Windows
+Classifier: Operating System :: POSIX :: Linux
+Description-Content-Type: text/markdown
+
+# Operator Information Library
+
+The library to get information about various operators in 
+Python.
+
+Install through pip:
+
+```sh
+pip install o
+```
+
+Start off my importing the module:
+
+```py
+import o
+```
+
+Use the `get` method to get the Operator object for a specific
+operator, provided as a string.
+
+```py
+operator = o.get("+=")
+print(operator)
+>>> "<class 'Operator(operator='+=', name='addition assignment', type=AssignmentOperatorType, methods=['__iadd__'], function=operator.iadd)'>"
+```
+
+Use the various attributes to retrieve information for the operator.
+
+```py
+operator.methods
+>>> ['__iadd__']
+
+str(operator.type)
+>>> "assignment"
+
+isinstance(operator.type, o.AssignmentOperatorType)
+>>> True
+```
+
+Or, you can use the Operator object directly.
+Be careful, an unknown operator raises an UnknownOperator exception.
+
+## License
+
+This repo is under the MIT license.
+

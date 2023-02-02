@@ -24,7 +24,7 @@ def parse_zipcode(df, cols=["ORIGIN_3DIGIT_ZIP", "DESTINATION_3DIGIT_ZIP"], new_
     # deep copy
     df = df.copy()
 
-    USZIPCODE_FILE = "data/threeDigitZipCodes.json"
+    USZIPCODE_FILE = "../data/threeDigitZipCodes.json"
 
     def parse_zipcode_(zipcode):
         """
