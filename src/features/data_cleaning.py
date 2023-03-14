@@ -362,6 +362,8 @@ def get_coordinates(df, col, new_col, dir="./data/zip3/zip3.shp"):
 
     import geopandas as gpd
 
+    unzip("data/zip3-20230302T083002Z-001.zip", "data")
+
     df = df.copy()
 
     # read 3 zipcode map data
@@ -407,3 +409,8 @@ def extract_from_date(df, col, new_col, kind=["month", "day", "day of week", "we
     if "week" in kind: df[new_col+"_WEEK"] = df[col].dt.isocalendar().week
 
     return df
+
+def unzip(path_to_zip_file, directory_to_extract_to):
+    import zipfile
+    with zipfile.ZipFile(path_to_zip_file, 'r') as zip_ref:
+        zip_ref.extractall(directory_to_extract_to)
