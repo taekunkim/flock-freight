@@ -83,7 +83,7 @@ def flatten_ref_num(df, col="REFERENCE_NUMBER"):
 
     return df
 
-def join_offers_orders(offers, orders, how="left", on="REFERENCE_NUMBER"):
+def join_offers_orders(offers, orders, how="inner", on="REFERENCE_NUMBER"):
     """
     Returns a table with each offer paired with its order
 
@@ -350,7 +350,7 @@ def change_to_boolean(df, col, new_col, true_val):
 
     return df
 
-def get_coordinates(df, col, new_col, dir="../data/zip3/zip3.shp"):
+def get_coordinates(df, col, new_col, dir="./data/zip3/zip3.shp"):
     """appends a column of coordinates to a dataframe based on the 3-digit zipcode value in "col"
 
     Args:
@@ -382,6 +382,8 @@ def get_coordinates(df, col, new_col, dir="../data/zip3/zip3.shp"):
     usa = usa[["ZIP3", "x", "y"]]
 
     # merge dataframes
+    usa["ZIP3"] = usa["ZIP3"].astype(int)
+    df[col] = df[col].astype(int)
     df = df.merge(usa, left_on=col, right_on="ZIP3").drop("ZIP3", axis=1).rename({"x": new_col+"_X", "y": new_col+"_Y"}, axis=1)
 
     return df

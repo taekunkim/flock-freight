@@ -2,11 +2,11 @@ CARRIER_ID,REFERENCE_NUMBER,CREATED_ON_HQ,RATE_USD,OFFER_TYPE,SELF_SERVE,IS_OFFE
 carrier1,"[
   ""order1"",
   ""order2""
-]",2017-02-07 11:54:13,9546.0,pool,True,False,False,False,False,False,False,True,True
+]",2017-02-13 11:54:13,9546.0,pool,True,False,False,False,False,False,False,True,True
 carrier1,"[
   ""order2"",
   ""order3""
-]",2017-02-11 08:59:27,9159.0,pool,True,True,False,True,False,True,True,True,True
+]",2017-02-20 08:59:27,9159.0,pool,True,True,False,True,False,True,True,True,True
 carrier2,"[
   ""order1""
 ]",2017-02-13 08:51:28,9288.0,quote,False,False,False,False,False,False,True,False,True

@@ -1,4 +1,4 @@
-def generate_estimated_minimum_cost_pipeline(df, random_state=44):
+def generate_estimated_minimum_cost_pipeline(df, random_state=44, split_test = False):
   import pandas as pd
   from sklearn.compose import ColumnTransformer
   from sklearn.preprocessing import MaxAbsScaler
@@ -25,8 +25,6 @@ def generate_estimated_minimum_cost_pipeline(df, random_state=44):
               'ESTIMATED_MODE_IS_FTL','DESTINATION_CLUTER']]
   y = df[['MIN_RATE']]
 
-  X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state= random_state)
-
   num_feat = ['RATE_USD', 'APPROXIMATE_DRIVING_ROUTE_MILEAGE', 'PALLETIZED_LINEAR_FEET', 'FTL_OFFER_COUNT', 
             "PREDICTED_OFFER_COUNT", 'GIVEN_HOURS']
   num_transformer = Pipeline(steps=[
@@ -51,11 +49,34 @@ def generate_estimated_minimum_cost_pipeline(df, random_state=44):
                                                                                      n_estimators = 500,
                                                                                      reg_alpha = 1,
                                                                                      reg_lambda = 1))])
-  pl.fit(X_train, y_train)
+  
+  if split_test:
+      # split train test
+      X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state= random_state)
 
-  y_preds = pl.predict(X_test)
-  mse = mean_squared_error(y_test, y_preds)
+      # train model
+      pl.fit(X_train, y_train)
 
-  df["PREDICTED_MIN_RATE"] = pl.predict(df)
+      y_preds = pl.predict(X_test)
+      mse = mean_squared_error(y_test, y_preds)
 
-  return pl, df, mse
+      df["PREDICTED_MIN_RATE"] = pl.predict(df)
+
+      return pl, df, mse
+
+  else:
+      # train model
+      pl.fit(X, y)
+      df["PREDICTED_MIN_RATE"] = pl.predict(X)
+
+      return pl, df, None
+
+  
+  # pl.fit(X_train, y_train)
+
+  # y_preds = pl.predict(X_test)
+  # mse = mean_squared_error(y_test, y_preds)
+
+  # df["PREDICTED_MIN_RATE"] = pl.predict(df)
+
+  # return pl, df, mse

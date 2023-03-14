@@ -1,4 +1,4 @@
 {
-    "dockerhub-id": "taekunkim/dsc180a_q1",
+    "dockerhub-id": "gihokim1997/dsc180b_q2",
     "build-script": "python run.py"
 }

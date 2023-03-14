@@ -14,16 +14,18 @@ def get_raw_data(config_dir):
     with open(config_dir, "r") as config_file:
         config = json.load(config_file)
 
-    orders = pd.read_csv(config["data"]["raw"]["dir"]["orders"], low_memory=False)[config["data"]["raw"]["req_cols"]["orders"]]
-    offers = pd.read_csv(config["data"]["raw"]["dir"]["offers"], low_memory=False)[list(config["data"]["raw"]["req_cols"]["offers"])]
+    orders = pd.read_csv(config["data"]["raw"]["dir"]["orders"], low_memory=False)
+    offers = pd.read_csv(config["data"]["raw"]["dir"]["offers"], low_memory=False)
 
     return orders, offers
 
 def clean_all(orders, offers):
     offers = data_cleaning.change_to_date(offers, ["CREATED_ON_HQ"])
+
     orders = data_cleaning.change_to_date(orders, ["ORDER_DATETIME_PST", "PICKUP_DEADLINE_PST"])
 
     offers = data_cleaning.flatten_ref_num(offers)
+    
     orders = data_cleaning.flatten_ref_num(orders)
 
     merged = data_cleaning.join_offers_orders(offers, orders)
@@ -81,7 +83,9 @@ def remove_outliers(merged):
         return outlier_id
 
     # create an aggregated "orders" dataframe
-    orders = merged.copy().sort_values("RATE_USD", ascending=True)
+    orders = merged.copy()
+    orders = orders.sort_values("RATE_USD", ascending=True)
+
     orders["OFFER_COUNT"] = orders.groupby("REFERENCE_NUMBER")["ORDER_DATETIME_PST"].transform("count")
     orders["FTL_OFFER_COUNT"] = orders.groupby("REFERENCE_NUMBER")["OFFER_IS_FTL"].transform("sum")
     orders = orders.groupby("REFERENCE_NUMBER").first().sort_values("ORDER_DATETIME_PST")
@@ -112,18 +116,123 @@ def remove_outliers(merged):
 
     return merged
 
-def split_train_test(merged, test_ratio=0.3):
-    import numpy as np
-    # here, we only consider delivered offers for both training and testing
-    delivered = merged[merged["LOAD_DELIVERED_FROM_OFFER"]]
+def aggregate_data(merged):
+    """_summary_
 
-    test_size = int(delivered.shape[0]*test_ratio)
-    test_ref = np.random.choice(delivered["REFERENCE_NUMBER"], size=test_size, replace=False)
+      Args:
+          merged (dataframe): the dataframe to analyze
 
-    test_set = merged[merged["REFERENCE_NUMBER"].isin(test_ref)]
-    train_set = merged[~merged["REFERENCE_NUMBER"].isin(test_ref)]
+      Return:
+          updated dataframe with OFFER_COUNT and FTL_OFFER_COUNT
+    """
+    orders = merged.copy().sort_values("RATE_USD", ascending=True)
+    orders["OFFER_COUNT"] = orders.groupby("REFERENCE_NUMBER")["ORDER_DATETIME_PST"].transform("count")
+    orders["FTL_OFFER_COUNT"] = orders.groupby("REFERENCE_NUMBER")["OFFER_IS_FTL"].transform("sum")
+    orders = orders.groupby("REFERENCE_NUMBER").first().sort_values("ORDER_DATETIME_PST")
+    return orders
 
-    test_set = test_set.sort_values(by=["REFERENCE_NUMBER", "CREATED_ON_HQ"], ascending=True)
-    train_set = train_set.sort_values(by=["REFERENCE_NUMBER", "CREATED_ON_HQ"], ascending=True)
-    
-    return train_set, test_set
+def merge_order_offer_on_reference(offer_df, order_df, how = "left", on = "REFERENCE_NUMBER"):
+  """_summary_
+
+      Args:
+          offer_df (dataframe): offer dataframe
+          order_df (dataframe): order dataframe
+
+      Return:
+          merged dataframe with offer and order on REFERENCE_NUMBER
+    """
+  # check df is a DataFrame
+  if not isinstance(offer_df, pd.DataFrame): AssertionError("Parameter must be Pandas DataFrame")
+
+  # check df is a DataFrame
+  if not isinstance(order_df, pd.DataFrame): AssertionError("Parameter must be Pandas DataFrame")
+  
+  order_df = order_df.reset_index()
+
+  
+  # checks if dataframe has required columns
+  req_cols = ['REFERENCE_NUMBER', 'OFFER_COUNT', "FTL_OFFER_COUNT"]
+
+  if not set(req_cols).issubset(set(order_df.columns)): AssertionError("DataFrame order_df does not contain required columns")
+  
+  to_return = pd.merge(offer_df, order_df[req_cols], how = how, on = on)
+  return to_return
+
+def split_train_test(X, random_state = 44):
+    """_summary_
+
+      Args:
+          X (dataframe): dataframe for spliting
+
+      Return:
+          trainset for X_train testset for X_test with test_size = 0.3
+    """
+    from sklearn.model_selection import train_test_split
+
+    X_train, X_test = train_test_split(X, test_size=0.3, random_state= random_state)
+
+    return X_train, X_test
+
+
+def Kmeans_clustering(merge_df, order_df, is_test_run = False):
+    """_summary_
+
+      Args:
+          merge_df (dataframe): merged offer dataframe
+          order_df (dataframe): order dataframe
+          is_test_run (boolean): check whether code runs for testset or not
+
+      Return:
+          order_df with clusters for origin and destination
+    """
+    from sklearn.cluster import KMeans
+    import pandas as pd
+
+    coords = pd.concat([merge_df[["ORIGIN_X", "ORIGIN_Y"]].rename({"ORIGIN_X": "X", "ORIGIN_Y": "Y"}, axis=1), merge_df[["DESTINATION_X", "DESTINATION_Y"]].rename({"DESTINATION_X": "X", "DESTINATION_Y": "Y"}, axis=1)], ignore_index=True)
+
+    if not is_test_run:
+      Kmean = KMeans(n_clusters=10)
+      Kmean.fit(coords)
+      coords["cluster"] = Kmean.predict(coords)
+    else:
+      Kmean = KMeans(n_clusters=1)
+      Kmean.fit(coords)
+      coords["cluster"] = Kmean.predict(coords)
+
+    unique_cluster = coords.groupby(['X', 'Y']).first().reset_index()
+    order_df["ORIGIN_CLUSTER"] = order_df[["ORIGIN_X","ORIGIN_Y"]].merge(unique_cluster, left_on = ["ORIGIN_X", "ORIGIN_Y"], right_on = ['X', 'Y'])['cluster'].values
+    order_df["DESTINATION_CLUTER"] = order_df[["DESTINATION_X","DESTINATION_Y"]].merge(unique_cluster, left_on = ["DESTINATION_X", "DESTINATION_Y"], right_on = ['X', 'Y'])['cluster'].values
+    orgin = list(map(str, order_df['ORIGIN_CLUSTER'].array))
+    dest = list(map(str, order_df['DESTINATION_CLUTER'].array))
+
+
+    order_df["ORGIN_DEST_COMB"] = [int(x+y) for x,y in zip(orgin,dest)]
+    return order_df
+
+def min_rate_df(df):
+    """_summary_
+
+      Args:
+          df (dataframe): merged dataframe
+
+      Return:
+          df with minimum_rate
+    """
+    gr = df.sort_values(["REFERENCE_NUMBER", "CREATED_ON_HQ"]).groupby("REFERENCE_NUMBER")
+    df["N_OFFER"] = gr.cumcount()
+    min_rate = df.groupby("REFERENCE_NUMBER").agg({"RATE_USD":"min"})
+    min_rate = min_rate.reset_index().rename(columns = {"RATE_USD":"MIN_RATE"})
+    df = df.merge(min_rate, on = "REFERENCE_NUMBER")
+    return df
+
+def generate_is_minimum_col(df):
+    """_summary_
+
+      Args:
+          df (dataframe): merged dataframe
+
+      Return:
+          df with IS_MINIMUM col that check whether current offer is minimum cost
+    """
+    df['IS_MINIMUM'] = df['RATE_USD'] == df['MIN_RATE']
+    return df

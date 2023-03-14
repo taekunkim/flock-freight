@@ -1,4 +1,4 @@
-def generate_offer_number_pipeline(df, random_state=44):
+def generate_offer_number_pipeline(df, random_state=44, split_test = False, is_test_run = False):
   from sklearn.tree import DecisionTreeClassifier
   from sklearn.preprocessing import MaxAbsScaler
   from sklearn.preprocessing import OrdinalEncoder
@@ -28,8 +28,6 @@ def generate_offer_number_pipeline(df, random_state=44):
               'OFFER_WEEK', 'OFFER_IS_FTL', 'ESTIMATED_MODE_IS_FTL', 'ORIGIN_CLUSTER', 'DESTINATION_CLUTER','ORGIN_DEST_COMB']]
   y = df[['OFFER_COUNT']]
 
-  X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state= random_state)
-
   num_feat = ['RATE_USD', 'APPROXIMATE_DRIVING_ROUTE_MILEAGE', "PALLETIZED_LINEAR_FEET", "GIVEN_HOURS", "REMAINING_HOURS"]
   num_transformer = Pipeline(steps=[
       ('scaler', MaxAbsScaler())
@@ -51,13 +49,24 @@ def generate_offer_number_pipeline(df, random_state=44):
 
 
   pl = Pipeline(steps=[('preprocessor', preproc), ('clf', DecisionTreeClassifier(max_depth=40, min_samples_leaf=2, min_samples_split=2))])
-  pl.fit(X_train, y_train)
 
-  y_preds = pl.predict(X_test)
+  if split_test:
+    # split train test
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state = random_state)
 
-  mse = mean_squared_error(y_test, y_preds)
+    # train model
+    pl.fit(X_train, y_train)
 
-  df["PREDICTED_OFFER_COUNT"] = pl.predict(df)
+    y_preds = pl.predict(X_test)
+    mse = mean_squared_error(y_test, y_preds)
 
-  return pl, df, mse
+    df["PREDICTED_OFFER_COUNT"] = pl.predict(df)
+
+    return pl, df, mse
+
+  else:
+      # train model
+      pl.fit(X, y)
+      df["PREDICTED_OFFER_COUNT"] = pl.predict(df)
+      return pl, df, None
 
